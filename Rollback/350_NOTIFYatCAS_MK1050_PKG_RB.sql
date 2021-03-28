@@ -1,0 +1,42 @@
+/*
+  Script:      350_NOTIFYatCAS_MK1050_PKG_RB.sql
+  Author:      FMASSARINI
+  Date:        02/09/2021
+  Purpose:     Rollback PKGs.
+*/
+
+SET TERMOUT ON
+SET ECHO OFF
+SET LINESIZE 80
+--SET ESCAPE ^
+--SET DEFINE OFF
+SET SERVEROUTPUT ON SIZE 10000
+WHENEVER SQLERROR EXIT ROLLBACK
+column filename NEW_VAL filename1 
+
+SELECT SYS_CONTEXT('USERENV', 'INSTANCE_NAME')  filename
+  FROM dual;
+
+spo 350_NOTIFYatCAS_MK1050_PKG_RB_&filename1..log;
+
+ALTER SESSION SET CURRENT_SCHEMA = NOTIFY;
+ALTER SESSION SET EDITION = ORA$BASE;
+
+SELECT 'current user is ' || USER || ' at ' FROM dual;
+
+SELECT TO_CHAR(SYSDATE,'DD-Mon-YYYY HH24:MI:SS') date_ FROM dual;
+
+DECLARE
+  v_count NUMBER;
+BEGIN  
+  SELECT 
+    COUNT(1)
+  INTO v_count 
+  FROM dba_objects
+  WHERE object_name = 'PKG_NOTIFY_SIXFLAGS_P';
+  IF (v_count > 0) THEN 
+     EXECUTE IMMEDIATE 'DROP PACKAGE PKG_NOTIFY_SIXFLAGS_P';
+  END IF;
+
+END;
+/
